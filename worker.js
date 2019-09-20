@@ -1,16 +1,32 @@
 
+
+// Information below can be found at https://panel.guardiankey.io
+// In Settings>AuthGroup, edit an authgroup, and go to tab "Deploy information"
 const organization_id = ""
 const authgroup_id = ""
 const key = ""
 const iv = ""
 
-
+// Information below depends on your system.
+// This is the name of the input field of the login page of your system.
 const username_field= ""
+
+// This is a URL of your system that logs the user out when accessed.
+// If you don't have it, the worker will send events to GuardianKey
+// But attempts will never be blocked!
+// Something like  "https://mydomain.com/logout"
 const logout_url =""
+
+// A string that appears in the HTML of your system when
+// the user fails the password. It should be exactly the same.
+// Something like "wrong password" or "invalid pass"
 const login_failed_string =""
+
+// Use true if the username is the user's email address. Put false otherwise.
 const username_is_email = true
 
 // Use 'https://api.guardiankey.io/checkaccess' for GuardianKey in cloud
+// If you don't know, just keep as is.
 const api_url = 'https://api.guardiankey.io/checkaccess'
 
 async function handleRequest(request) {
@@ -29,7 +45,7 @@ async function handlePostRequest(request) {
      login_failed = 1
    }
    let gk_return = await check_access(request,username,useremail,login_failed)
-    if(gk_return['response'] === 'BLOCK'){
+    if(gk_return['response'] === 'BLOCK' && ! logout_url === "" ){
       return fetch(logout_url)
     }
   }
