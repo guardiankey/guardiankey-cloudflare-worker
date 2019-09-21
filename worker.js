@@ -31,6 +31,10 @@ const api_url = 'https://api.guardiankey.io/checkaccess'
 
 async function handleRequest(request) {
   return fetch(request)
+  // USE TO TEST THE WORKER WHEN YOU HAVE POST IN FULL DOMAIN
+  //let response = await fetch(request)
+  //return new Response( (await response.text()).replace('action="https://DOMAIN/','action="/') ,response)
+
 }
 
 async function handlePostRequest(request) {
@@ -50,6 +54,9 @@ async function handlePostRequest(request) {
     }
   }
   return response
+  // USE TO TEST THE WORKER WHEN YOU HAVE POST IN FULL DOMAIN
+  // return new Response( (await response.text()).replace('action="https://DOMAIN/','action="/') ,response)
+
 }
 
 
