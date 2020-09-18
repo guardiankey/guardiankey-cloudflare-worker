@@ -49,7 +49,7 @@ async function handlePostRequest(request) {
      login_failed = 1
    }
    let gk_return = await check_access(request,username,useremail,login_failed)
-    if(gk_return['response'] === 'BLOCK' && ! logout_url === "" ){
+    if(gk_return['response'] == 'BLOCK' && ! logout_url == "" ){
       return fetch(logout_url)
     }
   }

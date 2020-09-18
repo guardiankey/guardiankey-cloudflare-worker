@@ -5,17 +5,18 @@ This is a Cloudflare worker to integrate with GuardianKey.
 GuardianKey is a solution to protect systems against authentication attacks. It uses Artificial Intelligence to detect if access attempts are from legitimate users. Attackers can be blocked even using the right password. GuardianKey provides an attack risk in real-time based on the user’s behavior, threat intelligence, and psychometrics (or behavioral biometrics). You can notify your users, block or log the attempts.
 
 Learn more how GuardianKey works:
+- https://guardiankey.io/
 - https://guardiankey.io/resource/folder-guardian-key.pdf
 - https://guardiankey.io/products/guardiankey-auth-security-enterprise/
 - https://guardiankey.io/documentation/documentation-for-users/
-- https://youtu.be/jdvv7NW57xc
+- https://youtu.be/SZLTaQUpIas
 - https://youtu.be/R5QFcH4bXuA
 
 GuardianKey has free and paid plans, check it at https://guardiankey.io/services/guardiankey-auth-security-lite/
 
 ## These instructions in video
 
-[![Watch the video](https://img.youtube.com/vi/jdvv7NW57xc/hqdefault.jpg)](https://youtu.be/jdvv7NW57xc)
+[![Watch the video](https://img.youtube.com/vi/SZLTaQUpIas/hqdefault.jpg)](https://youtu.be/SZLTaQUpIas)
 
 
 ## Create an account at GuardianKey
@@ -31,21 +32,23 @@ Attention: Cloudflare requires Google Chrome for the following procedures.
 - Access the Cloudflare's administration panel, at https://dash.cloudflare.com/ . 
 - Click on your domain.
 - Click on the Workers menu.
-- Click on "Launch Editor".
-- Click on "Add script" .
-- Give the name "guardiankey".
-- Edit the created script, clicking on Edit.
-- Copy the script at https://raw.githubusercontent.com/pauloangelo/guardiankey-cloudflare-worker/master/worker.js into the script edition area, in the left side.
+- Click on "Manage Workers".
+- Click on "Create a Worker".
+- Copy the script at https://raw.githubusercontent.com/guardiankey/guardiankey-cloudflare-worker/master/worker.js into the script edition area, in the left side.
 - In the right side, type the URL of the login page of your system.
 - Set-up the variables at the script header, details in the next Section.
 - Click on Update Preview.
 - Try to access your system.
 - Access https://panel.guardiankey.io and check if events are arriving there.
-- Save the script.
-- Goes back to the Dashboard, click on "Dashboard" in the left-top.
+- Save and Deploy the script, button in the bottom of the page.
+- Goes back to the Dashboard, click on left indicator, before the scripts name, below the Cloudflare logo (top-left).
+- Rename de worker to "guardiankey".
+- Go to the dash main page, clicking on your site's domain, near the Cloudflare logo (top-left).
+- Go to Workers again.
 - Add a route to the worker, click on "Add route"
 - Insert ``"https://*yourdomain.com/*"``, and select "guardiankey".
 - Done!
+- Check directly in your website. Events should appear in the GuardianKey's panel.
 
 ## How to find information to configure the worker
 
