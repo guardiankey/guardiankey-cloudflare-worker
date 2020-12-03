@@ -95,7 +95,7 @@ async function create_event(request,username,useremail,login_failed) {
 					"userName": username,
 					"authMethod": "",
 					"loginFailed": login_failed,
-					"userAgent": request.headers["user-agent"],
+					"userAgent": request.headers.get('user-agent'),
 					"psychometricTyped": "",
 					"psychometricImage": "",
 					"event_type": "Authentication",
