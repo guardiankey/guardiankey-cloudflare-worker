@@ -22,6 +22,11 @@ const logout_url =""
 // Something like "wrong password" or "invalid pass"
 const login_failed_string =""
 
+// Set the login path of your site, example: /auth/login
+// If it is blank, all POSTs with the username_field will be processed
+// In doubt, you can leave it blank
+const login_post_path =""
+
 // Use true if the username is the user's email address. Put false otherwise.
 const username_is_email = true
 
@@ -106,8 +111,9 @@ async function create_event(request,username,useremail,login_failed) {
 
 addEventListener('fetch', event => {
   const { request } = event
-  const { url } = request
-  if (request.method === 'POST') {
+  const url = new URL(request.url)
+
+  if (request.method === 'POST' && ( login_post_path === "" || url.pathname === login_post_path ) ) {
     return event.respondWith(handlePostRequest(request))
   }else if (request.method === 'GET') {
     return event.respondWith(handleRequest(request))
