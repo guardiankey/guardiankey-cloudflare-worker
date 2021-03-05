@@ -34,12 +34,46 @@ const username_is_email = true
 // If you don't know, just keep as is.
 const api_url = 'https://api.guardiankey.io/checkaccess'
 
+class AttributeRewriter {
+  constructor(attributeName) {
+    this.attributeName = attributeName
+  }
+  element(element) {
+    const attribute = element.getAttribute(this.attributeName)
+    if (attribute) {
+      element.setAttribute(
+        this.attributeName,
+        attribute.replace("/static/", "/gk/static/"),
+      )
+    }
+  }
+}
+
+const rewriter = new HTMLRewriter()
+  .on("a", new AttributeRewriter("href"))
+  .on("img", new AttributeRewriter("src"))
+  .on("link", new AttributeRewriter("href"))
+  .on("script", new AttributeRewriter("src"))
+
+
+async function forwardGK(request) {
+  const url = new URL(request.url)
+  let gkUrl = "https://panel.guardiankey.io/"+url.pathname.replace('/gk/','/')
+    request = new Request(gkUrl, request)
+    request.headers.set("Origin", url.url)
+    let response = await fetch(request)
+    response = new Response(response.body, response)
+    response.headers.set("Access-Control-Allow-Origin", url.origin)
+    response.headers.append("Vary", "Origin")
+    return rewriter.transform(response)
+}
+
+
 async function handleRequest(request) {
   return fetch(request)
   // USE TO TEST THE WORKER WHEN YOU HAVE POST IN FULL DOMAIN
   //let response = await fetch(request)
   //return new Response( (await response.text()).replace('action="https://DOMAIN/','action="/') ,response)
-
 }
 
 async function handlePostRequest(request) {
@@ -113,7 +147,10 @@ addEventListener('fetch', event => {
   const { request } = event
   const url = new URL(request.url)
 
-  if (request.method === 'POST' && ( login_post_path === "" || url.pathname === login_post_path ) ) {
+  if(url.pathname.startsWith("/gk/"))
+  {
+    return forwardGK(request)
+  }else if (request.method === 'POST' && ( login_post_path === "" || url.pathname === login_post_path ) ) {
     return event.respondWith(handlePostRequest(request))
   }else if (request.method === 'GET') {
     return event.respondWith(handleRequest(request))
