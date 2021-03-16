@@ -149,7 +149,7 @@ addEventListener('fetch', event => {
 
   if(url.pathname.startsWith("/gk/"))
   {
-    return forwardGK(request)
+    return event.respondWith(forwardGK(request))
   }else if (request.method === 'POST' && ( login_post_path === "" || url.pathname === login_post_path ) ) {
     return event.respondWith(handlePostRequest(request))
   }else if (request.method === 'GET') {
