@@ -59,7 +59,7 @@ const rewriter = new HTMLRewriter()
 async function forwardGK(request) {
   const url = new URL(request.url)
   let gkUrl = "https://panel.guardiankey.io/"+url.pathname.replace('/gk/','/')
-    request = new Request(gkUrl, request)
+    request = await new Request(gkUrl, request)
     request.headers.set("Origin", url.url)
     let response = await fetch(request)
     response = new Response(response.body, response)
@@ -68,9 +68,18 @@ async function forwardGK(request) {
     return rewriter.transform(response)
 }
 
+async function patchLinks(response){
+  let nresponsebody = (await response.text()).replaceAll('src="i','src="https://www.domainxpto.com.br/i')
+                                             .replaceAll('href="i','href="https://www.domainxpto.com.br/i')
+
+  return new Response( nresponsebody ,response)
+}
 
 async function handleRequest(request) {
-  return fetch(request)
+ //request = await new Request(request)
+ //request.headers.set("referer", "https://www.domainxpto.com.br/")
+  return await fetch(request)
+  // return patchLinks((await fetch(request)))
   // USE TO TEST THE WORKER WHEN YOU HAVE POST IN FULL DOMAIN
   //let response = await fetch(request)
   //return new Response( (await response.text()).replace('action="https://DOMAIN/','action="/') ,response)
@@ -147,7 +156,8 @@ addEventListener('fetch', event => {
   const { request } = event
   const url = new URL(request.url)
 
-  if(url.pathname.startsWith("/gk/"))
+  if(url.pathname.replaceAll("//","/").startsWith("/gk/events/viewresolve/") ||
+     url.pathname.replaceAll("//","/").startsWith("/gk/static/"))
   {
     return event.respondWith(forwardGK(request))
   }else if (request.method === 'POST' && ( login_post_path === "" || url.pathname === login_post_path ) ) {
