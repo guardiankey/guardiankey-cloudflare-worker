@@ -88,11 +88,14 @@ async function handleRequest(request) {
 async function handlePostRequest(request) {
   let reqBody = await readRequestPost(request.clone())
   let response =  await fetch(request)
-  if(username_field in reqBody){
+  if(reqBody !=null && username_field in reqBody){
    let username = reqBody[username_field]
    let useremail = (username_is_email)? username : ""
    let resBody = await readRequestBody(response.clone())
    let login_failed=0
+   if(typeof resBody !== 'string'){
+    resBody=JSON.stringify(resBody)
+   }
    if(resBody.includes(login_failed_string)){
      login_failed = 1
    }
@@ -172,7 +175,7 @@ async function readRequestBody(request) {
   const contentType = headers.get('content-type')
   if (contentType.includes('application/json')) {
     const body = await request.json()
-    return JSON.stringify(body)
+    return body; //JSON.stringify(body)
   } else if (contentType.includes('application/text')) {
     const body = await request.text()
     return body
@@ -204,6 +207,9 @@ async function readRequestPost(request) {
       body[entry[0]] = entry[1]
     }
     return body
+  }else if (contentType!=null && contentType.includes('json')) {
+    const jsondata = await readRequestBody(request)
+    return jsondata
   }
 }
 
