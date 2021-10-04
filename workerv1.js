@@ -32,7 +32,7 @@ const username_is_email = true
 
 // Use 'https://api.guardiankey.io/checkaccess' for GuardianKey in cloud
 // If you don't know, just keep as is.
-const api_url = 'https://api.guardiankey.io/v2/checkaccess'
+const api_url = 'https://api.guardiankey.io/checkaccess'
 
 class AttributeRewriter {
   constructor(attributeName) {
@@ -110,44 +110,8 @@ async function handlePostRequest(request) {
 
 }
 
-async function sha256(message) {
-  const msgBuffer = new TextEncoder().encode(message)
-  const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  const hashHex = hashArray.map(b => ("00" + b.toString(16)).slice(-2)).join("")
-  return hashHex
-}
 
 async function check_access(request,username,useremail,login_failed) {
-  try {
-    let event = await create_event(request,username,useremail,login_failed)
-    let event_str = JSON.stringify(event)
-    let hash = await sha256(event_str+key+iv)
-    let jsonmsg = {"id": authgroup_id, "message": event_str, "hash": hash }
-    let content = JSON.stringify(jsonmsg)
-    let headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-    const init = { method: 'POST', headers: headers, body: content }
-
-    let fetchPromise = fetch(api_url, init)
-    let timeoutPromise = new Promise(resolve => setTimeout(resolve, 6000))
-    let response = await Promise.race([fetchPromise, timeoutPromise])
-    if (response) {
-      const body = await response.json()
-      return body
-    } else {
-      return {'response': 'TIMEOUT'}
-    }
-    // const response = await fetch(api_url, init)
-    // const body = await response.json()
-    // return body
-  } catch(err){
-    return {'response': 'ERROR'}
-  }
-}
-
-
-async function check_accessv1(request,username,useremail,login_failed) {
-  const api_url = 'https://api.guardiankey.io/checkaccess'
 	let event = await create_event(request,username,useremail,login_failed)
 	let event_str = JSON.stringify(event)
   	let keybuff = str2ab8(atob(key))
