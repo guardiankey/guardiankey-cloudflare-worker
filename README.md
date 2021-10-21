@@ -30,25 +30,25 @@ You will need the deploy information to configure your worker. In the panel, ``S
 Attention: Cloudflare requires Google Chrome for the following procedures.
 
 - Access the Cloudflare's administration panel, at https://dash.cloudflare.com/ . 
-- Click on your domain.
-- Click on the Workers menu.
-- Click on "Manage Workers".
-- Click on "Create a Worker".
-- Copy the script at https://raw.githubusercontent.com/guardiankey/guardiankey-cloudflare-worker/master/worker.js into the script edition area, in the left side.
-- In the right side, type the URL of the login page of your system.
-- Set-up the variables at the script header, details in the next Section.
-- Click on Update Preview.
-- Try to access your system.
-- Access https://panel.guardiankey.io and check if events are arriving there.
-- Save and Deploy the script, button in the bottom of the page.
-- Goes back to the Dashboard, click on left indicator, before the scripts name, below the Cloudflare logo (top-left).
-- Rename de worker to "guardiankey".
-- Go to the dash main page, clicking on your site's domain, near the Cloudflare logo (top-left).
-- Go to Workers again.
-- Add a route to the worker, click on "Add route"
-- Insert ``"https://*yourdomain.com/*"``, and select "guardiankey".
-- Done!
-- Check directly in your website. Events should appear in the GuardianKey's panel.
+1. Click on your domain.
+1. Click on the Workers menu.
+1. Click on "Manage Workers".
+1. Click on "Create a Worker".
+1. Copy the script at https://raw.githubusercontent.com/guardiankey/guardiankey-cloudflare-worker/master/worker.js into the script edition area, in the left side.
+1. In the right side, type the URL of the login page of your system.
+1. Set-up the variables at the script header, details in the next Section.
+1. Click on Update Preview.
+1. Try to access your system.
+1. Access https://panel.guardiankey.io and check if events are arriving there.
+1. Save and Deploy the script, button in the bottom of the page.
+1. Goes back to the Dashboard, click on left indicator, before the scripts name, below the Cloudflare logo (top-left).
+1. Rename de worker to "guardiankey".
+1. Go to the dash main page, clicking on your site's domain, near the Cloudflare logo (top-left).
+1. Go to Workers again.
+1. Add a route to the worker, click on "Add route"
+1. Insert ``"https://*yourdomain.com/*"``, and select "guardiankey".
+1. Done!
+1. Check directly in your website. Events should appear in the GuardianKey's panel.
 
 ## How to find information to configure the worker
 
