@@ -1,4 +1,4 @@
-
+//  https://workers.cloudflare.com/playground
 
 // Information below can be found at https://panel.guardiankey.io
 // In Settings>AuthGroup, edit an authgroup, and go to tab "Deploy information"
@@ -9,30 +9,35 @@ const iv = ""
 
 // Information below depends on your system.
 // This is the name of the input field of the login page of your system.
-const username_field= ""
+const username_field= "Username"
 
 // This is a URL of your system that logs the user out when accessed.
 // If you don't have it, the worker will send events to GuardianKey
 // But attempts will never be blocked!
 // Something like  "https://mydomain.com/logout"
-const logout_url =""
+const logout_url ="/auth/logout"
+
 
 // A string that appears in the HTML of your system when
 // the user fails the password. It should be exactly the same.
 // Something like "wrong password" or "invalid pass"
-const login_failed_string =""
+//const login_failed_string ="senha inválido"
+const login_failed_string ="usuário ou senha inválidos"
+
 
 // Set the login path of your site, example: /auth/login
 // If it is blank, all POSTs with the username_field will be processed
 // In doubt, you can leave it blank
-const login_post_path =""
+const login_post_path ="/auth/login"
+//const login_post_path ="/auth/login"
+
 
 // Use true if the username is the user's email address. Put false otherwise.
-const username_is_email = true
+const username_is_email = false
 
 // Use 'https://api.guardiankey.io/checkaccess' for GuardianKey in cloud
 // If you don't know, just keep as is.
-const api_url = 'https://api.guardiankey.io/v2/checkaccess'
+const api_url = 'https://api.guardiankey.io/checkaccess'
 
 class AttributeRewriter {
   constructor(attributeName) {
@@ -60,7 +65,7 @@ async function forwardGK(request) {
   const url = new URL(request.url)
   let gkUrl = "https://panel.guardiankey.io/"+url.pathname.replace('/gk/','/')
     request = await new Request(gkUrl, request)
-    request.headers.set("Origin", url.url)
+    request.headers.set("Origin", request.url)
     let response = await fetch(request)
     response = new Response(response.body, response)
     response.headers.set("Access-Control-Allow-Origin", url.origin)
@@ -78,7 +83,18 @@ async function patchLinks(response){
 async function handleRequest(request) {
  //request = await new Request(request)
  //request.headers.set("referer", "https://www.domainxpto.com.br/")
+
+
+
   return await fetch(request)
+
+
+//   return new Response("teste", {
+// 	headers: {
+// 		"content-type": "text/html",
+//	},
+//});
+
   // return patchLinks((await fetch(request)))
   // USE TO TEST THE WORKER WHEN YOU HAVE POST IN FULL DOMAIN
   //let response = await fetch(request)
@@ -86,73 +102,53 @@ async function handleRequest(request) {
 }
 
 async function handlePostRequest(request) {
+	//console.log(request)
+
+  //return await fetch(request)
+
   let reqBody = await readRequestPost(request.clone())
   let response =  await fetch(request)
+
+
+ try{
+  //console.log(response)
   if(reqBody !=null && username_field in reqBody){
    let username = reqBody[username_field]
    let useremail = (username_is_email)? username : ""
    let resBody = await readRequestBody(response.clone())
-   let login_failed=0
+   let login_failed="0"
    if(typeof resBody !== 'string'){
     resBody=JSON.stringify(resBody)
    }
+   //console.log(resBody)
    if(resBody.includes(login_failed_string)){
-     login_failed = 1
+     login_failed = "1"
    }
    let gk_return = await check_access(request,username,useremail,login_failed)
-    if(gk_return['response'] == 'BLOCK' && ! logout_url == "" ){
-      return fetch(logout_url)
+    if('response' in gk_return && gk_return['response'] == 'BLOCK' ){
+      return await fetch(logout_url)
     }
   }
+
+} catch (error) {
+	console.error("Error in handlePost:");
+}
+
+
   return response
   // USE TO TEST THE WORKER WHEN YOU HAVE POST IN FULL DOMAIN
   // return new Response( (await response.text()).replace('action="https://DOMAIN/','action="/') ,response)
 
 }
 
-async function sha256(message) {
-  const msgBuffer = new TextEncoder().encode(message)
-  const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  const hashHex = hashArray.map(b => ("00" + b.toString(16)).slice(-2)).join("")
-  return hashHex
-}
 
 async function check_access(request,username,useremail,login_failed) {
-  try {
-    let event = await create_event(request,username,useremail,login_failed)
-    let event_str = JSON.stringify(event)
-    let hash = await sha256(event_str+key+iv)
-    let jsonmsg = {"id": authgroup_id, "message": event_str, "hash": hash }
-    let content = JSON.stringify(jsonmsg)
-    let headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-    const init = { method: 'POST', headers: headers, body: content }
+ try{
 
-    let fetchPromise = fetch(api_url, init)
-    let timeoutPromise = new Promise(resolve => setTimeout(resolve, 6000))
-    let response = await Promise.race([fetchPromise, timeoutPromise])
-    if (response) {
-      const body = await response.json()
-      return body
-    } else {
-      return {'response': 'TIMEOUT'}
-    }
-    // const response = await fetch(api_url, init)
-    // const body = await response.json()
-    // return body
-  } catch(err){
-    return {'response': 'ERROR'}
-  }
-}
-
-
-async function check_accessv1(request,username,useremail,login_failed) {
-  const api_url = 'https://api.guardiankey.io/checkaccess'
 	let event = await create_event(request,username,useremail,login_failed)
 	let event_str = JSON.stringify(event)
   	let keybuff = str2ab8(atob(key))
-    const baseKey = await crypto.subtle.importKey('raw', keybuff, { name: 'AES-CBC' },false, ['encrypt'], )
-                                .catch(function(err){ console.error(err);	});
+    const baseKey  = await crypto.subtle.importKey('raw', keybuff, { name: 'AES-CBC' },false, ['encrypt'], );
 
   let encoded = str2ab8(event_str)
   let iv1 =  str2ab8(atob(iv))
@@ -168,6 +164,10 @@ async function check_accessv1(request,username,useremail,login_failed) {
   const response = await fetch(api_url, init)
   const body = await response.json()
    return body
+} catch (error) {
+	console.error("Error in checkAccess:");
+	return {};
+}
 }
 
 async function create_event(request,username,useremail,login_failed) {
@@ -191,24 +191,39 @@ async function create_event(request,username,useremail,login_failed) {
 	return event
 }
 
-addEventListener('fetch', event => {
-  const { request } = event
-  const url = new URL(request.url)
+
+export default {
+	async fetch(request, env, ctx) {
+
+
+		 const targetUrl = "https://guardiankey.io/"; // + request.url.pathname;
+
+		const url = new URL(targetUrl);
+
 
   if(url.pathname.replaceAll("//","/").startsWith("/gk/events/viewresolve/") ||
      url.pathname.replaceAll("//","/").startsWith("/gk/static/"))
   {
-    return event.respondWith(forwardGK(request))
-  }else if (request.method === 'POST' && ( login_post_path === "" || url.pathname === login_post_path ) ) {
-    return event.respondWith(handlePostRequest(request))
+    return forwardGK(request)
+// }else if (request.method === 'POST' && ( url.pathname === login_post_path ) ) {
+}else if (request.method === 'POST' ) {
+    return handlePostRequest(request)
   }else if (request.method === 'GET') {
-    return event.respondWith(handleRequest(request))
+    return handleRequest(request)
   }
-})
+
+	},
+};
+
 
 async function readRequestBody(request) {
   const { headers } = request
   const contentType = headers.get('content-type')
+
+  if (contentType == null) {
+    return ""
+  }
+
   if (contentType.includes('application/json')) {
     const body = await request.json()
     return body; //JSON.stringify(body)
@@ -226,9 +241,23 @@ async function readRequestBody(request) {
     }
     return JSON.stringify(body)
   } else {
-    let myBlob = await request.blob()
-    var objectURL = URL.createObjectURL(myBlob)
-    return objectURL
+       return ""
+
+	            // Para blobs ou arquivos binários, convertemos para Base64 manualmente
+				const blob = await request.blob();
+				const arrayBuffer = await blob.arrayBuffer();
+				const uint8Array = new Uint8Array(arrayBuffer);
+	
+				let binaryString = "";
+				for (let i = 0; i < uint8Array.length; i++) {
+					binaryString += String.fromCharCode(uint8Array[i]);
+				}
+	
+				return btoa(binaryString); // Retorna a string Base64 do Blob
+
+    // let myBlob = await request.blob()
+    // var objectURL = URL.createObjectURL(myBlob)
+    // return objectURL
   }
 }
 
@@ -236,6 +265,12 @@ async function readRequestBody(request) {
 async function readRequestPost(request) {
   const { headers } = request
   const contentType = headers.get('content-type')
+
+  if (contentType == null) {
+    return {}
+  }
+
+
   if (contentType.includes('form')) {
     const formData = await request.formData()
     let body = {}
@@ -246,6 +281,8 @@ async function readRequestPost(request) {
   }else if (contentType!=null && contentType.includes('json')) {
     const jsondata = await readRequestBody(request)
     return jsondata
+  } else {
+    return {}
   }
 }
 
@@ -273,3 +310,4 @@ function str2ab8(str) {
 function ab2str8(buf) {
   return String.fromCharCode.apply(null, new Uint8Array(buf));
 }
+
